@@ -1,0 +1,28 @@
+name: ETL OpenWeather -> Supabase (Hourly)
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour, on the hour
+  workflow_dispatch:       # allow manual trigger too
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Run ETL
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CITY: Karachi
+        run: python etl_openweather_supabase.py
