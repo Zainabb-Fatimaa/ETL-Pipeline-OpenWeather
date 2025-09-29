@@ -36,8 +36,10 @@ jobs:
         env:
           WEATHERAPI_KEY: ${{ secrets.WEATHERAPI_KEY }}
 
-      - name: Run Islamabad extractor (Open-Meteo)
+      - name: Run Islamabad extractor (WeatherAPI)
         run: python extract_islamabad.py
+        env:
+          WEATHERAPI_KEY: ${{ secrets.WEATHERAPI_KEY }}
 
       - name: Run Unified ETL (Transform + OLAP + Load)
         run: python etl_unified.py
