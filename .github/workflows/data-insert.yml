@@ -1,28 +1,42 @@
-name: ETL OpenWeather -> Supabase (Hourly)
+name: ETL Weather Pipeline
 
 on:
   schedule:
-    - cron: '0 * * * *'   # every hour, on the hour
-  workflow_dispatch:       # allow manual trigger too
+    - cron: "0 * * * *"   # Run every hour
+  workflow_dispatch:       # Allow manual trigger
 
 jobs:
-  run-etl:
+  etl:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      
+          python-version: "3.10"
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
-      
-      - name: Run ETL
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Karachi extractor (OpenWeather)
+        run: python extract_karachi.py
         env:
-          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          CITY: Karachi
-        run: python etl_openweather_supabase.py
+          OPENWEATHER_KEY: ${{ secrets.OPENWEATHER_KEY }}
+
+      - name: Run Lahore extractor (WeatherAPI)
+        run: python extract_lahore.py
+        env:
+          WEATHERAPI_KEY: ${{ secrets.WEATHERAPI_KEY }}
+
+      - name: Run Islamabad extractor (Open-Meteo)
+        run: python extract_islamabad.py
+
+      - name: Run Unified ETL (Transform + OLAP + Load)
+        run: python etl_unified.py
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
